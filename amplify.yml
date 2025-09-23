@@ -17,3 +17,16 @@ frontend:
     paths:
       - node_modules/**/*
       - .angular/cache/**/*
+  customHeaders:
+    - pattern: '**/*.js'
+      headers:
+        - key: 'Content-Type'
+          value: 'application/javascript'
+    - pattern: '**/*.css'
+      headers:
+        - key: 'Content-Type'
+          value: 'text/css'
+redirects:
+  - source: '/<*>'
+    target: '/index.html'
+    status: 200
