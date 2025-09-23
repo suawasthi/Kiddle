@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "title": "The Jungle Adventure",
+    "category": "Animals",
+    "text": "Once upon a time in a lush green jungle, Leo the lion cub wanted to explore beyond his home. He met Sammy the squirrel, who showed him how to climb trees, and Bella the butterfly, who taught him about the beautiful flowers. Together, they discovered a magical waterfall where all the animals came to play and share stories.",
+    "image_urls": ["assets/images/jungle_ani_2.png", "assets/images/jungle_ani.png"],
+    "age_range": "2-4",
+    "reading_time": 3
+  },
+  {
+    "id": 2,
+    "title": "The Little Star's Wish",
+    "category": "Space",
+    "text": "Twinkle was a little star who lived high up in the night sky. She watched the children on Earth playing and laughing, and she wished she could join them. One magical night, a shooting star granted her wish, and she became a beautiful sparkle that danced in the children's eyes, making them smile and dream wonderful dreams.",
+    "image_urls": ["assets/images/octa.png", "assets/images/octa.png"],
+    "age_range": "3-5",
+    "reading_time": 4
+  },
+  {
+    "id": 3,
+    "title": "The Rainbow Bridge",
+    "category": "Colors",
+    "text": "After a big rainstorm, a beautiful rainbow appeared in the sky. Ruby the rabbit hopped along the rainbow bridge, meeting friends of every color. She found Red the robin, Orange the octopus, Yellow the sun, Green the grass, Blue the butterfly, and Purple the flower. Together, they painted the world with happiness and joy.",
+    "image_urls": ["assets/images/rabbit_with_rainbow.png", "assets/images/rabbit_with_rainbow.png"],
+    "age_range": "2-4",
+    "reading_time": 3
+  },
+  {
+    "id": 4,
+    "title": "The Magic Garden",
+    "category": "Nature",
+    "text": "In a secret garden behind an old cottage, magical flowers grew that could sing and dance. When the wind blew gently, the flowers would sway and hum beautiful melodies. Children who visited the garden would find their worries disappearing as the flowers shared their magical songs of peace and happiness.",
+    "image_urls": ["assets/images/flowers.png", "assets/images/flowers.png"],
+    "age_range": "3-5",
+    "reading_time": 4
+  },
+  {
+    "id": 5,
+    "title": "The Friendly Dragon",
+    "category": "Fantasy",
+    "text": "Sparkle was a gentle dragon who lived in a cozy cave on a mountain. Unlike other dragons, she loved to help people and make them laugh. She would breathe colorful bubbles instead of fire, and children would come from far and wide to play with her. Sparkle taught everyone that being kind and helpful is the most magical power of all.",
+    "image_urls": ["assets/images/dragon_with_child.png", "assets/images/dragon_with_child_2.png"],
+    "age_range": "4-5",
+    "reading_time": 5
+  },
+  {
+    "id": 6,
+    "title": "The Ocean Friends",
+    "category": "Animals",
+    "text": "Deep in the blue ocean, Finny the fish made friends with Coral the crab and Shelly the sea turtle. They explored colorful coral reefs, played hide and seek in seaweed forests, and discovered a sunken treasure chest filled with pearls and golden coins. The ocean friends learned that the greatest treasure of all is friendship.",
+    "image_urls": ["assets/images/ocean1.png", "assets/images/ocean2.png"],
+    "age_range": "2-4",
+    "reading_time": 3
+  }
+]
