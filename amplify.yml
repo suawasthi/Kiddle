@@ -10,7 +10,7 @@ frontend:
         - echo "Building the Angular application..."
         - npm run build
   artifacts:
-    baseDirectory: dist/kids-story-world
+    baseDirectory: dist/kids-story-world/browser
     files:
       - '**/*'
   cache:
