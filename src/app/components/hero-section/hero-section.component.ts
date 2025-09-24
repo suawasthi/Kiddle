@@ -47,6 +47,7 @@ import { Router } from '@angular/router';
         <div class="hero-buttons">
           <button class="btn-primary" (click)="startReading()">Start Reading!</button>
           <button class="btn-secondary" (click)="exploreStories()">Explore Stories</button>
+          <button class="btn-activity" (click)="goToActivities()">🎨 Activities</button>
         </div>
       </div>
       
@@ -418,6 +419,30 @@ import { Router } from '@angular/router';
       background: #ffffff;
       color: #667eea;
       box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    .btn-activity {
+      background: linear-gradient(45deg, #ff9a9e, #fecfef);
+      border: 3px solid #ffffff;
+      padding: 18px 36px;
+      border-radius: 50px;
+      color: #333;
+      font-size: clamp(1.1rem, 3vw, 1.4rem);
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-family: 'Nunito', sans-serif;
+      position: relative;
+      z-index: 20;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .btn-activity:hover {
+      transform: translateY(-3px) scale(1.02);
+      background: linear-gradient(45deg, #fecfef, #ff9a9e);
+      color: #2c3e50;
+      box-shadow: 0 8px 20px rgba(255, 154, 158, 0.4);
     }
 
     .btn-primary:active, .btn-secondary:active {
@@ -1128,7 +1153,7 @@ export class HeroSectionComponent implements AfterViewInit {
       
       setTimeout(() => {
         button.style.transform = 'translateY(-5px) scale(1.05)';
-        this.router.navigate(['/']);
+        this.router.navigate(['/stories']);
       }, 300);
     }
   }
@@ -1141,7 +1166,20 @@ export class HeroSectionComponent implements AfterViewInit {
       
       setTimeout(() => {
         button.style.transform = 'translateY(-5px) scale(1.05)';
-        this.router.navigate(['/']);
+        this.router.navigate(['/stories']);
+      }, 300);
+    }
+  }
+
+  goToActivities() {
+    const button = this.heroContainer.nativeElement.querySelector('.btn-activity') as HTMLElement;
+    if (button) {
+      button.style.transform = 'translateY(-5px) scale(0.95)';
+      this.createMagicalBurst(button);
+      
+      setTimeout(() => {
+        button.style.transform = 'translateY(-5px) scale(1.05)';
+        this.router.navigate(['/activities']);
       }, 300);
     }
   }

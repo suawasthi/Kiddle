@@ -13,10 +13,16 @@ import { Story } from '../../models/story.model';
     <div class="story-detail-container" *ngIf="currentStory(); else loading" 
          [style.background]="currentTheme().background">
       <div class="story-header">
-        <button (click)="goBack()" class="back-button" 
-                [style.background]="currentTheme().buttonGradient">
-          ← Back to Stories
-        </button>
+        <div class="header-buttons">
+          <button (click)="goHome()" class="home-button" 
+                  [style.background]="currentTheme().buttonGradient">
+            🏠 Home
+          </button>
+          <button (click)="goBack()" class="back-button" 
+                  [style.background]="currentTheme().buttonGradient">
+            ← Back to Stories
+          </button>
+        </div>
         
         <div class="story-info" [style.background]="currentTheme().backgroundGradient">
           <h1 class="story-title" [style.color]="currentTheme().textColor">{{ currentStory()?.title }}</h1>
@@ -67,6 +73,11 @@ import { Story } from '../../models/story.model';
       </div>
 
       <div class="story-actions">
+        <button (click)="playStory()" class="action-button play-button"
+                [style.background]="themeService.getPlayButtonTheme()">
+          🎵 {{ isPlaying() ? 'Stop Reading' : 'Play Story' }}
+        </button>
+        
         <button (click)="toggleFavorite()" class="action-button favorite-button"
                 [style.background]="themeService.getLoveButtonTheme()">
           {{ isFavorite() ? '❤️' : '🤍' }} {{ isFavorite() ? 'Loved!' : 'Love this story' }}
@@ -96,6 +107,31 @@ import { Story } from '../../models/story.model';
 
     .story-header {
       margin-bottom: 2rem;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .home-button, .back-button {
+      background: linear-gradient(45deg, #ff6b9d, #c44569);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 25px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+    }
+
+    .home-button:hover, .back-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
     }
 
     .back-button {
@@ -285,6 +321,11 @@ import { Story } from '../../models/story.model';
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     }
 
+    .play-button {
+      background: linear-gradient(45deg, #4ecdc4, #44a08d);
+      color: white;
+    }
+
     .loading-container {
       display: flex;
       flex-direction: column;
@@ -350,6 +391,7 @@ export class StoryDetailComponent {
   currentStory = signal<Story | null>(null);
   currentImageIndex = signal(0);
   isFavorite = signal(false);
+  isPlaying = signal(false);
 
   private allStories = computed(() => this.storyService.filteredStories());
   
@@ -384,6 +426,10 @@ export class StoryDetailComponent {
   }
 
   goBack(): void {
+    this.router.navigate(['/stories']);
+  }
+
+  goHome(): void {
     this.router.navigate(['/']);
   }
 
@@ -444,6 +490,119 @@ export class StoryDetailComponent {
       // Fallback for browsers that don't support Web Share API
       navigator.clipboard.writeText(window.location.href);
       alert('Story link copied to clipboard!');
+    }
+  }
+
+  private audioPlayer: HTMLAudioElement | null = null;
+
+  playStory(): void {
+    const story = this.currentStory();
+    if (!story) return;
+
+    console.log('Play story called for:', story.title);
+    console.log('Story audio_url:', story.audio_url);
+
+    if (this.isPlaying()) {
+      // Stop current audio or speech
+      if (this.audioPlayer) {
+        this.audioPlayer.pause();
+        this.audioPlayer.currentTime = 0;
+        this.audioPlayer = null;
+      } else {
+        speechSynthesis.cancel();
+      }
+      this.isPlaying.set(false);
+      return;
+    }
+
+    // Check if story has audio file
+    if (story.audio_url) {
+      console.log('Playing audio file for:', story.title);
+      this.playAudioFile(story.audio_url);
+    } else {
+      console.log('No audio file, using text-to-speech for:', story.title);
+      this.playTextToSpeech(story.text);
+    }
+  }
+
+  private playAudioFile(audioUrl: string): void {
+    console.log('Attempting to play audio:', audioUrl, 'for story:', this.currentStory()?.title);
+    
+    this.audioPlayer = new Audio(audioUrl);
+    
+    this.audioPlayer.onloadstart = () => {
+      console.log('Audio loading started for:', this.currentStory()?.title);
+      this.isPlaying.set(true);
+    };
+    
+    this.audioPlayer.oncanplay = () => {
+      console.log('Audio can play for:', this.currentStory()?.title);
+    };
+    
+    this.audioPlayer.onended = () => {
+      console.log('Audio ended for:', this.currentStory()?.title);
+      this.isPlaying.set(false);
+      this.audioPlayer = null;
+    };
+    
+    this.audioPlayer.onerror = (error) => {
+      console.error('Audio error for:', this.currentStory()?.title, error);
+      this.isPlaying.set(false);
+      this.audioPlayer = null;
+      // Fallback to text-to-speech if audio fails
+      this.playTextToSpeech(this.currentStory()?.text || '');
+    };
+    
+    this.audioPlayer.play().catch(error => {
+      console.error('Error playing audio:', error);
+      this.isPlaying.set(false);
+      this.audioPlayer = null;
+      // Fallback to text-to-speech if audio fails
+      this.playTextToSpeech(this.currentStory()?.text || '');
+    });
+  }
+
+  private playTextToSpeech(text: string): void {
+    // Use Web Speech API to read the story
+    if ('speechSynthesis' in window) {
+      // Stop any current speech
+      speechSynthesis.cancel();
+      
+      // Create speech utterance
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.8; // Slower reading speed for children
+      utterance.pitch = 1.1; // Slightly higher pitch
+      utterance.volume = 0.8;
+      
+      // Try to use a child-friendly voice if available
+      const voices = speechSynthesis.getVoices();
+      const childVoice = voices.find(voice => 
+        voice.name.includes('Child') || 
+        voice.name.includes('Female') ||
+        voice.name.toLowerCase().includes('young')
+      );
+      
+      if (childVoice) {
+        utterance.voice = childVoice;
+      }
+      
+      // Set up event handlers
+      utterance.onstart = () => {
+        this.isPlaying.set(true);
+      };
+      
+      utterance.onend = () => {
+        this.isPlaying.set(false);
+      };
+      
+      utterance.onerror = () => {
+        this.isPlaying.set(false);
+      };
+      
+      // Start reading
+      speechSynthesis.speak(utterance);
+    } else {
+      alert('Text-to-speech is not supported in this browser.');
     }
   }
 

@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "kids-story-world": {
+    "y": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -38,8 +38,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "20kB",
-                  "maximumError": "30kB"
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
                 }
               ],
               "outputHashing": "all"
@@ -56,10 +56,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "kids-story-world:build:production"
+              "buildTarget": "y:build:production"
             },
             "development": {
-              "buildTarget": "kids-story-world:build:development"
+              "buildTarget": "y:build:development"
             }
           },
           "defaultConfiguration": "development"

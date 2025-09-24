@@ -1,8 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { StoryService } from '../../services/story.service';
-import { ThemeService } from '../../services/theme.service';
 import { Story } from '../../models/story.model';
 
 @Component({
@@ -11,17 +10,19 @@ import { Story } from '../../models/story.model';
   imports: [CommonModule, RouterModule],
   template: `
     <div class="story-list-container">
-      <div class="header fade-in-up">
+      <div class="header">
+        <button (click)="goHome()" class="home-button">
+          🏠 Back to Home
+        </button>
         <h1 class="main-title">🌟 Magical Story World 🌟</h1>
         <p class="subtitle">Choose your favorite adventure!</p>
       </div>
 
-      <div class="stories-grid scale-in" *ngIf="filteredStories().length > 0; else noStories">
+      <div class="stories-grid" *ngIf="filteredStories().length > 0; else noStories">
         <div
           *ngFor="let story of filteredStories(); trackBy: trackByStoryId"
           class="story-card"
           [routerLink]="['/story', story.id]"
-          [style.border-color]="getThemeForStory(story.category).primaryColor"
         >
           <div class="story-image">
             <img
@@ -31,18 +32,17 @@ import { Story } from '../../models/story.model';
               class="story-thumbnail"
             />
             <div class="story-overlay">
-              <div class="play-button">▶️</div>
+              <div class="play-button" (click)="playStory(story, $event)">▶️</div>
             </div>
           </div>
           
           <div class="story-content">
             <h3 class="story-title">{{ story.title }}</h3>
             <div class="story-meta">
-            <span class="category-badge" [style.background]="getThemeForStory(story.category).buttonGradient">{{ getCategoryEmoji(story.category) }} {{ story.category }}</span>
-            <span class="age-range" *ngIf="story.age_range" [style.background]="getThemeForStory(story.category).accentColor">👶 {{ story.age_range }}</span>
-            <span class="reading-time" *ngIf="story.reading_time" [style.background]="getThemeForStory(story.category).secondaryColor">⏱️ {{ story.reading_time }}min</span>
+              <span class="category-badge">{{ getCategoryEmoji(story.category) }} {{ story.category }}</span>
+              <span class="age-range" *ngIf="story.age_range">👶 {{ story.age_range }}</span>
+              <span class="reading-time" *ngIf="story.reading_time">⏱️ {{ story.reading_time }}min</span>
             </div>
-            <p class="story-preview">{{ getStoryPreview(story.text) }}</p>
           </div>
         </div>
       </div>
@@ -58,109 +58,90 @@ import { Story } from '../../models/story.model';
   `,
   styles: [`
     .story-list-container {
-      padding: var(--spacing-4);
+      padding: 1rem;
       max-width: 1200px;
       margin: 0 auto;
-      min-height: 100vh;
     }
 
     .header {
       text-align: center;
-      margin-bottom: var(--spacing-12);
-      padding: var(--spacing-8);
-      background: var(--color-neutral-50);
-      border-radius: var(--radius-3xl);
-      box-shadow: var(--shadow-neumorphic-light);
-      position: relative;
-      overflow: hidden;
+      margin-bottom: 2rem;
+      padding: 1rem;
     }
 
-    .header::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
-      animation: rotate 20s linear infinite;
+    .home-button {
+      background: linear-gradient(45deg, #ff6b9d, #c44569);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 25px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+    }
+
+    .home-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
     }
 
     .main-title {
-      font-family: var(--font-family-display);
-      font-size: var(--font-size-4xl);
-      font-weight: var(--font-weight-extrabold);
-      color: var(--color-primary-700);
+      font-size: 2.5rem;
+      color: #ff6b9d;
       margin: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-      position: relative;
-      z-index: 1;
-      letter-spacing: -0.025em;
+      animation: bounce 2s infinite;
     }
 
     .subtitle {
-      font-family: var(--font-family-primary);
-      font-size: var(--font-size-xl);
-      font-weight: var(--font-weight-medium);
-      color: var(--color-neutral-600);
-      margin: var(--spacing-4) 0 0 0;
-      position: relative;
-      z-index: 1;
+      font-size: 1.2rem;
+      color: #666;
+      margin: 0.5rem 0 0 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
     }
 
     .stories-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-      gap: var(--spacing-6);
-      padding: var(--spacing-2) 0;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      padding: 1rem 0;
     }
 
     .story-card {
-      background: var(--color-neutral-50);
-      border-radius: var(--radius-3xl);
+      background: white;
+      border-radius: 20px;
       overflow: hidden;
-      box-shadow: var(--shadow-neumorphic-medium);
-      transition: all var(--duration-normal) var(--ease-spring);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
       cursor: pointer;
       position: relative;
-      border: 2px solid transparent;
-      min-height: var(--touch-target-extra-large);
-      transform: translateY(0);
     }
 
     .story-card:hover {
-      transform: translateY(-12px) scale(1.02);
-      box-shadow: var(--shadow-neumorphic-strong);
-      border-color: var(--color-primary-300);
-    }
-
-    .story-card:focus {
-      outline: 3px solid var(--color-primary-500);
-      outline-offset: 4px;
-    }
-
-    .story-card:active {
-      transform: translateY(-4px) scale(0.98);
-      transition: all var(--duration-fast) var(--ease-in-out);
+      transform: translateY(-8px);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
     }
 
     .story-image {
       position: relative;
-      height: 240px;
+      height: 200px;
       overflow: hidden;
-      background: linear-gradient(135deg, var(--color-primary-100), var(--color-primary-200));
     }
 
     .story-thumbnail {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform var(--duration-slow) var(--ease-out);
-      filter: brightness(1.1) saturate(1.2);
+      transition: transform 0.3s ease;
     }
 
     .story-card:hover .story-thumbnail {
-      transform: scale(1.08);
+      transform: scale(1.1);
     }
 
     .story-overlay {
@@ -169,13 +150,12 @@ import { Story } from '../../models/story.model';
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(139, 92, 246, 0.8));
+      background: rgba(0, 0, 0, 0.3);
       display: flex;
       align-items: center;
       justify-content: center;
       opacity: 0;
-      transition: opacity var(--duration-normal) var(--ease-in-out);
-      backdrop-filter: blur(4px);
+      transition: opacity 0.3s ease;
     }
 
     .story-card:hover .story-overlay {
@@ -183,213 +163,126 @@ import { Story } from '../../models/story.model';
     }
 
     .play-button {
-      font-size: var(--font-size-5xl);
+      font-size: 3rem;
       color: white;
-      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: var(--radius-full);
-      width: var(--spacing-20);
-      height: var(--spacing-20);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transform: scale(0.8);
-      transition: transform var(--duration-normal) var(--ease-bounce);
-    }
-
-    .story-card:hover .play-button {
-      transform: scale(1);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     }
 
     .story-content {
-      padding: var(--spacing-8);
-      background: var(--color-neutral-50);
-      position: relative;
+      padding: 1.5rem;
     }
 
     .story-title {
-      font-family: var(--font-family-display);
-      font-size: var(--font-size-2xl);
-      font-weight: var(--font-weight-bold);
-      color: var(--color-neutral-900);
-      margin: 0 0 var(--spacing-4) 0;
-      line-height: var(--line-height-tight);
-      letter-spacing: -0.025em;
+      font-size: 1.3rem;
+      color: #333;
+      margin: 0 0 1rem 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      font-weight: bold;
     }
 
     .story-meta {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--spacing-2);
-      margin-bottom: var(--spacing-4);
+      gap: 0.5rem;
+      margin-bottom: 1rem;
     }
 
     .category-badge, .age-range, .reading-time {
-      padding: var(--spacing-3) var(--spacing-5);
-      border-radius: var(--radius-full);
-      font-size: var(--font-size-base);
-      font-weight: var(--font-weight-semibold);
-      font-family: var(--font-family-primary);
-      color: white;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(8px);
-      transition: all var(--duration-fast) var(--ease-in-out);
-      min-height: var(--touch-target-min);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
     }
 
-    .category-badge:hover, .age-range:hover, .reading-time:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
+    .category-badge {
+      background: linear-gradient(45deg, #ff6b9d, #c44569);
+      color: white;
+    }
+
+    .age-range {
+      background: linear-gradient(45deg, #4ecdc4, #44a08d);
+      color: white;
+    }
+
+    .reading-time {
+      background: linear-gradient(45deg, #ffa726, #ff7043);
+      color: white;
     }
 
     .story-preview {
-      font-family: var(--font-family-primary);
-      color: var(--color-neutral-600);
-      line-height: var(--line-height-relaxed);
-      font-size: var(--font-size-base);
+      color: #666;
+      line-height: 1.5;
+      font-size: 0.95rem;
       margin: 0;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
     }
 
     .no-stories {
       text-align: center;
-      padding: var(--spacing-16) var(--spacing-4);
-      background: var(--color-neutral-50);
-      border-radius: var(--radius-3xl);
-      box-shadow: var(--shadow-neumorphic-light);
-      margin: var(--spacing-8);
+      padding: 3rem 1rem;
+      color: #666;
     }
 
     .no-stories-icon {
-      font-size: var(--font-size-6xl);
-      margin-bottom: var(--spacing-4);
-      opacity: 0.6;
+      font-size: 4rem;
+      margin-bottom: 1rem;
     }
 
     .no-stories h3 {
-      font-family: var(--font-family-display);
-      font-size: var(--font-size-2xl);
-      font-weight: var(--font-weight-bold);
-      color: var(--color-neutral-700);
-      margin: 0 0 var(--spacing-2) 0;
+      font-size: 1.5rem;
+      margin: 0 0 0.5rem 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
     }
 
     .no-stories p {
-      font-family: var(--font-family-primary);
-      font-size: var(--font-size-lg);
-      color: var(--color-neutral-600);
+      font-size: 1rem;
       margin: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
     }
 
-    /* Professional Animations */
-    @keyframes rotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% {
         transform: translateY(0);
       }
-    }
-
-    @keyframes scaleIn {
-      from {
-        opacity: 0;
-        transform: scale(0.9);
+      40% {
+        transform: translateY(-10px);
       }
-      to {
-        opacity: 1;
-        transform: scale(1);
+      60% {
+        transform: translateY(-5px);
       }
-    }
-
-    .fade-in-up {
-      animation: fadeInUp 0.8s var(--ease-out) forwards;
-    }
-
-    .scale-in {
-      animation: scaleIn 0.6s var(--ease-spring) forwards;
-    }
-
-    .scale-in .story-card {
-      animation: scaleIn 0.6s var(--ease-spring) forwards;
-      animation-delay: calc(var(--animation-delay, 0) * 0.1s);
     }
 
     @media (max-width: 768px) {
       .stories-grid {
         grid-template-columns: 1fr;
-        gap: var(--spacing-6);
+        gap: 1rem;
       }
 
       .main-title {
-        font-size: var(--font-size-3xl);
-      }
-
-      .subtitle {
-        font-size: var(--font-size-lg);
-      }
-
-      .header {
-        padding: var(--spacing-6);
-        margin-bottom: var(--spacing-8);
+        font-size: 2rem;
       }
 
       .story-content {
-        padding: var(--spacing-5);
+        padding: 1rem;
       }
 
       .story-title {
-        font-size: var(--font-size-xl);
-      }
-
-      .story-image {
-        height: 200px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .story-list-container {
-        padding: var(--spacing-2);
-      }
-
-      .main-title {
-        font-size: var(--font-size-2xl);
-      }
-
-      .subtitle {
-        font-size: var(--font-size-base);
-      }
-
-      .stories-grid {
-        grid-template-columns: 1fr;
-        gap: var(--spacing-4);
-      }
-
-      .story-content {
-        padding: var(--spacing-4);
+        font-size: 1.1rem;
       }
     }
   `]
 })
 export class StoryListComponent {
   private storyService = inject(StoryService);
-  private themeService = inject(ThemeService);
+  private router = inject(Router);
+  private audioPlayer: HTMLAudioElement | null = null;
 
   filteredStories = computed(() => this.storyService.filteredStories());
+
+  goHome(): void {
+    this.router.navigate(['/']);
+  }
 
   trackByStoryId(index: number, story: Story): number {
     return story.id;
@@ -410,12 +303,149 @@ export class StoryListComponent {
     return emojiMap[category] || '📚';
   }
 
-  getThemeForStory(category: string) {
-    return this.themeService.getThemeForCategory(category);
-  }
-
   onImageError(event: any): void {
     // Fallback to a placeholder image
     event.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
+  }
+
+  playStory(story: Story, event: Event): void {
+    event.stopPropagation(); // Prevent navigation to story detail
+    
+    console.log('Play story called for:', story.title);
+    console.log('Story audio_url:', story.audio_url);
+    
+    // Check if story has audio file
+    if (story.audio_url) {
+      console.log('Playing audio file for:', story.title);
+      this.playAudioFile(story.audio_url, story.title);
+    } else {
+      console.log('No audio file, using text-to-speech for:', story.title);
+      this.playTextToSpeech(story.text, story.title);
+    }
+  }
+
+  private playAudioFile(audioUrl: string, storyTitle: string): void {
+    console.log('Attempting to play audio:', audioUrl, 'for story:', storyTitle);
+    
+    // Stop any current audio
+    if (this.audioPlayer) {
+      this.audioPlayer.pause();
+      this.audioPlayer.currentTime = 0;
+    }
+    
+    this.audioPlayer = new Audio(audioUrl);
+    
+    this.audioPlayer.onloadstart = () => {
+      console.log('Audio loading started for:', storyTitle);
+      this.showPlayFeedback(storyTitle);
+    };
+    
+    this.audioPlayer.oncanplay = () => {
+      console.log('Audio can play for:', storyTitle);
+    };
+    
+    this.audioPlayer.onended = () => {
+      console.log('Audio ended for:', storyTitle);
+      this.audioPlayer = null;
+    };
+    
+    this.audioPlayer.onerror = (error) => {
+      console.error('Audio error for:', storyTitle, error);
+      this.audioPlayer = null;
+      // Fallback to text-to-speech if audio fails
+      this.playTextToSpeechFallback(storyTitle);
+    };
+    
+    this.audioPlayer.play().catch(error => {
+      console.error('Error playing audio:', error);
+      this.audioPlayer = null;
+      // Fallback to text-to-speech if audio fails
+      this.playTextToSpeechFallback(storyTitle);
+    });
+  }
+
+  private playTextToSpeechFallback(storyTitle: string): void {
+    // Find the story by title to get the text
+    const story = this.filteredStories().find(s => s.title === storyTitle);
+    if (story) {
+      this.playTextToSpeech(story.text, storyTitle);
+    } else {
+      this.showPlayFeedback('Audio not available');
+    }
+  }
+
+  private playTextToSpeech(text: string, storyTitle: string): void {
+    // Use Web Speech API to read the story
+    if ('speechSynthesis' in window) {
+      // Stop any current speech
+      speechSynthesis.cancel();
+      
+      // Create speech utterance
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.8; // Slower reading speed for children
+      utterance.pitch = 1.1; // Slightly higher pitch
+      utterance.volume = 0.8;
+      
+      // Try to use a child-friendly voice if available
+      const voices = speechSynthesis.getVoices();
+      const childVoice = voices.find(voice => 
+        voice.name.includes('Child') || 
+        voice.name.includes('Female') ||
+        voice.name.toLowerCase().includes('young')
+      );
+      
+      if (childVoice) {
+        utterance.voice = childVoice;
+      }
+      
+      // Start reading
+      speechSynthesis.speak(utterance);
+      
+      // Show feedback
+      this.showPlayFeedback(storyTitle);
+    } else {
+      alert('Text-to-speech is not supported in this browser.');
+    }
+  }
+
+  private showPlayFeedback(storyTitle: string): void {
+    // Create a temporary notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(45deg, #ff6b9d, #c44569);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 25px;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      font-weight: bold;
+      box-shadow: 0 8px 32px rgba(255, 107, 157, 0.3);
+      z-index: 1000;
+      animation: slideIn 0.3s ease-out;
+    `;
+    notification.textContent = `🎵 Playing: ${storyTitle}`;
+    
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+      notification.style.animation = 'slideIn 0.3s ease-out reverse';
+      setTimeout(() => {
+        document.body.removeChild(notification);
+        document.head.removeChild(style);
+      }, 300);
+    }, 3000);
   }
 }
